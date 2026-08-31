@@ -1,0 +1,15 @@
+<!-- Single-glass TEAS mark, sized for browser tabs. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 3 52 52">
+  <defs>
+    <linearGradient id="oolong" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#DD9438"/>
+      <stop offset="1" stop-color="#B36A18"/>
+    </linearGradient>
+  </defs>
+  <path d="M17 26 L21 46 Q21.4 51 27 51 L37 51 Q42.6 51 43 46 L47 26 Z" fill="url(#oolong)"/>
+  <ellipse cx="32" cy="26" rx="15" ry="4.6" fill="#EBAC63"/>
+  <g fill="none" stroke="#12a294" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M13 13 L21 46 Q21.4 51 27 51 L37 51 Q42.6 51 43 46 L51 13"/>
+    <ellipse cx="32" cy="13" rx="19" ry="5.4"/>
+  </g>
+</svg>

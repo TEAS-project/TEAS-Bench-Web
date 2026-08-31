@@ -1,0 +1,37 @@
+{
+ "deepseek-v3.2/batch-size-1/imo-answerbench/sglang": [
+  {
+   "cat": "V-concurrency",
+   "sev": "STRONG",
+   "msg": "throughput compared across concurrency regimes \u2014 serial (b200=1.0, h200=1.0, mi355x=1.0) vs concurrent (b300=3.8); tps is per-stream so the concurrent cells are penalised by contention, not by hardware"
+  }
+ ],
+ "deepseek-v3.2/batch-size-1/imo-answerbench/vllm": [
+  {
+   "cat": "V-concurrency",
+   "sev": "STRONG",
+   "msg": "throughput compared across concurrency regimes \u2014 serial (b200=1.0, h200=1.0, mi355x=1.0) vs concurrent (b300=3.7); tps is per-stream so the concurrent cells are penalised by contention, not by hardware"
+  }
+ ],
+ "deepseek-v3.2/batch-size-default/imo-answerbench/sglang": [
+  {
+   "cat": "V-concurrency",
+   "sev": "STRONG",
+   "msg": "throughput compared across concurrency regimes \u2014 serial (b200=1.0, h200=1.0, mi355x=1.0) vs concurrent (b300=3.8); tps is per-stream so the concurrent cells are penalised by contention, not by hardware"
+  }
+ ],
+ "deepseek-v3.2/batch-size-default/imo-answerbench/vllm": [
+  {
+   "cat": "V-concurrency",
+   "sev": "STRONG",
+   "msg": "throughput compared across concurrency regimes \u2014 serial (b200=1.0, h200=1.0, mi355x=1.0) vs concurrent (b300=3.7); tps is per-stream so the concurrent cells are penalised by contention, not by hardware"
+  }
+ ],
+ "kimi-k2.5/batch-size-1/longbench/sglang/mi355x": [
+  {
+   "cat": "G-floor",
+   "sev": "SOFT",
+   "msg": "decode MBU=1.8% \u2014 under 2.0% of the node memory-bandwidth roofline (tpot=27.03ms, tps=37.0); below any healthy run in the set \u2014 check before publishing"
+  }
+ ]
+}

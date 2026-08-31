@@ -1,0 +1,10 @@
+TEAS Benchmark — website
+Copyright 2026 University of Edinburgh
+
+This repository holds two kinds of material, licensed separately.
+
+Software: Apache License 2.0 (see LICENSE) every tracked file except public/data/*.json
+
+Published data: Creative Commons Attribution 4 International (see LICENSE-DATA) all five public/data/*.json files, generated from the TEAS results repository
+
+Produced with funding from ARIA under the Scaling Compute programme.
