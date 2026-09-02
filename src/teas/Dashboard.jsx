@@ -597,7 +597,7 @@ export default function Dashboard() {
           <Card>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
               <span>Serving</span>
-              <SSel aria-label="Model" value={s.model} onChange={(e) => set({ model: e.target.value })}>
+              <SSel aria-label="Model" value={s.model} onChange={(e) => { const v = e.target.value; const c = M.fixSel(db, { ...s, model: v }); set({ model: v, batch: M.densestBatch(db, c, s.tier) }); }}>
                 {modelOpts.map((o) => <option key={o.value} value={o.value}>{o.label}{o.sub ? ` (${o.sub})` : ''}</option>)}
               </SSel>
               <span>for</span>
