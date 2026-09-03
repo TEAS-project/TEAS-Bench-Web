@@ -100,6 +100,21 @@ export function fixSel(db, sel) {
   if (!fws.includes(s.fw)) s.fw = fws[0];
   return s;
 }
+// ---- URL selection ----
+const SEL_QUERY = { model: 'model', member: 'workload', batch: 'batch', fw: 'engine', tier: 'tier' };
+const SEL_DEFAULT = { model: null, fam: 'general', member: 'arena-hard', batch: 'batch-size-default', fw: 'vllm', tier: 'datacentre' };
+/** Overview selection from URL params. The family follows the workload; missing keys use defaults. */
+export function selFromSearch(sp) {
+  const s = { ...SEL_DEFAULT };
+  for (const [k, q] of Object.entries(SEL_QUERY)) if (sp.has(q)) s[k] = sp.get(q);
+  const fam = FAMILIES.find((f) => f.members.some((m) => m.ds === s.member));
+  if (fam) s.fam = fam.id;
+  return s;
+}
+export function selToSearch(s, sp) {
+  for (const [k, q] of Object.entries(SEL_QUERY)) sp.set(q, s[k]);
+  return sp;
+}
 export const scn = (db, s) => db.models[s.model].batches[s.batch][s.member];
 export const fwData = (db, s) => { const c = scn(db, s); return c.fw[s.fw] || c.fw[c.frameworks[0]]; };
 export const shownGpus = (db, s) => Object.keys(fwData(db, s).hw);

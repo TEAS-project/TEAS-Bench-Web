@@ -295,7 +295,6 @@ export default function Dashboard() {
   const tab = location.pathname === '/insights' ? 'analysis' : 'overview';  // Map routes to dashboard tabs.
   useChartTheme();  // Rebuild SVG strings after a theme change.
   const [data, setData] = useState(null);
-  const [sel, setSel] = useState({ model: null, fam: 'general', member: 'arena-hard', batch: 'batch-size-default', fw: 'vllm', tier: 'datacentre' });
   const [rx, setRx] = useState({ phase: 'decode', cost: 'nCbr' });  // radar: phase drives the axis set
   const [hmAxes, setHmAxes] = useState({
     moe: { experience: 'tpu', capacity: 'nodeTps', burden: 'buyReq' },
@@ -310,7 +309,7 @@ export default function Dashboard() {
       fetch('/data/flags.json').then((r) => (r.ok ? r.json() : {})).catch(() => ({})),
       // The variation study is optional.
       fetch('/data/variation_study.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
-    ]).then(([db, figs, turns, flags, variation]) => { setData({ db, figs, turns, flags: flags || {}, variation }); setSel((s) => M.fixSel(db, { ...s, model: s.model || db.modelOrder[0] })); });
+    ]).then(([db, figs, turns, flags, variation]) => setData({ db, figs, turns, flags: flags || {}, variation }));
   }, []);
 
   // Scroll to card anchors after data and layout are ready.
@@ -328,8 +327,9 @@ export default function Dashboard() {
   if (!data) return <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 p-8">Loading benchmark data…</div>;
   const { db } = data;
   const flags = data.flags || {};
-  const s = M.fixSel(db, sel);
-  const set = (patch) => setSel(M.fixSel(db, { ...s, ...patch }));
+  // Store the scenario selection in the URL so a configuration can be linked directly.
+  const s = M.fixSel(db, M.selFromSearch(searchParams));
+  const set = (patch) => setSearchParams((sp) => M.selToSearch(M.fixSel(db, { ...s, ...patch }), sp), { replace: true });
 
   // Store adjustable buy-pricing state in the URL.
   const buyDef = PR.buyDefaults(db.pricing);
