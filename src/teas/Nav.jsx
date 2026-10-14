@@ -11,11 +11,12 @@ const ITEMS = [
   ['/methods', 'Methods'],
   ['/publications', 'Publications'],
   ['/team', 'Team'],
+  ['/blogs', 'Blogs'],
   ['/contact', 'Contact'],
 ];
 
 // Preserve custom pricing stored in the query string across every route.
-const CARRIES_SEARCH = new Set(['/', '/insights', '/methods', '/publications', '/team', '/contact']);
+const CARRIES_SEARCH = new Set(['/', '/insights', '/methods', '/publications', '/team', '/blogs', '/contact']);
 
 export function Nav() {
   const [theme, toggleTheme] = useTheme();
@@ -26,7 +27,8 @@ export function Nav() {
         <Brand expansion={false} />
         <div className="flex flex-wrap gap-1">
           {ITEMS.map(([to, label]) => {
-            const active = pathname === to;
+            // Nested routes such as /blogs/<slug> keep their parent tab active.
+            const active = pathname === to || (to !== '/' && pathname.startsWith(to + '/'));
             return (
               <Link key={to} to={CARRIES_SEARCH.has(to) ? { pathname: to, search } : to}
                 className={'px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ' + (active

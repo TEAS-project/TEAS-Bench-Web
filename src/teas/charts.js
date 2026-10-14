@@ -72,7 +72,8 @@ export function radarSVG(hw, mem, axesIn) {
     axes.forEach((ax) => {
       const v = d[ax.k] == null ? 0 : d[ax.k];
       const [x, y] = pt(ax.a, R * v / 100);
-      const raw = ax.raw ? d[ax.raw] : null;
+      // A derived axis (e.g. requests per kJ) supplies a getter instead of a raw field name.
+      const raw = ax.get ? ax.get(d) : ax.raw ? d[ax.raw] : null;
       const money = ax.unit && ax.unit.charAt(0) === '$';
       // An axis formatter carries its own symbol ('0.4¢', '6 kJ'), so a '$'/'J'-led unit
       // contributes only its remainder (' / request') — same rule as uval above.

@@ -394,12 +394,17 @@ export default function Dashboard() {
   const timeProfiles = timingProfiles(fd, scnv.kind);
   const legendProfile = isAgentic ? timeProfiles.task : timeProfiles.request;
   // Map normalised radar axes to raw values, units and optional formatters.
+  // Energy and cost are shown as rates (work per kJ, work per $) so every radar axis reads
+  // higher = better. The normalised keys are unchanged: best-in-view = 100 either way.
   const perN = isAgentic ? 'task' : 'request';
+  const fmtRate = (v) => (v >= 100 ? Math.round(v).toLocaleString() : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2) : v.toPrecision(2));
+  const radarCostUnit = (c) => (c.per === 'req' ? `${perN}s / $` : '1M tokens / $');
   const RRAW = { nP: ['tps', 'token/s'], nPp: ['tps_p', 'token/s'], nR: ['reqs', 'req/s'],
-    nE: ['tokJ', 'token/joule'], nEr: ['jReq', `J / ${perN}`, M.fmtJoule],
+    nE: ['tokJ', 'token/joule'], nEr: [(d) => (d.jReq == null ? null : 1000 / d.jReq), `${perN}s / kJ`, fmtRate],
     nM: ['mbu_d', '%'], nMp: ['mbu_p', '%'], nF: ['mfu_p', '%'], nE2e: ['e2e', 's'],
-    ...Object.fromEntries(costMetrics.map((c) => [c.norm, [c.key, M.costMeta(c, isAgentic).unit, c.fmt]])) };
-  const ax = (k, l) => ({ k, l, raw: (RRAW[k] || [])[0], unit: (RRAW[k] || [])[1], fmt: (RRAW[k] || [])[2] });
+    ...Object.fromEntries(costMetrics.map((c) => [c.norm, [(d) => (d[c.key] == null ? null : 1 / d[c.key]), radarCostUnit(c), fmtRate]])) };
+  // A function source is a derived getter; a string is a raw field name.
+  const ax = (k, l) => { const [src, unit, fmt] = RRAW[k] || []; return { k, l, ...(typeof src === 'function' ? { get: src } : { raw: src }), unit, fmt }; };
   // Radar axes use best-in-view = 100, with raw values in tooltips.
   const radarCostMetric = costMetrics.find((x) => x.norm === rx.cost) || costMetrics[0];
   const costAx = () => ax(radarCostMetric.norm, radarCostMetric.basis === 'Buy' ? 'Buy TCO' : 'Rent');
@@ -426,14 +431,14 @@ export default function Dashboard() {
        ['Experience', [['Task latency (avg e2e, s)', 'e2e'], ['TTFT (ms)', 'ttft'], ['TPOT (ms)', 'tpot_ms'], ['Tokens/s per user', 'tps']]],
        ['Operating point', [['Achieved task concurrency', 'task_concurrency_achieved']]],
        ['Task shape', [['Tokens / task', 'tokReq'], ['Tool calls / task', 'toolcalls']]],
-       ['Cost', [['Buy ($ / task)', 'buyReq'], ['Rent ($ / task)', 'rentReq']]],
-       ['Energy', [['J / task', 'jReq'], ['Token/joule (decode)', 'tokJ']]],
+       ['Cost', [['Buy (tasks / $)', 'buyReq'], ['Rent (tasks / $)', 'rentReq']]],
+       ['Energy', [['Tasks / kJ', 'jReq'], ['Token/joule (decode)', 'tokJ']]],
        ['Quality', [['Task success (%)', 'acc']]]]
     : [['', [['Hardware', 'name']]],
        ['Experience', [['TTFT (ms)', 'ttft'], ['TPOT (ms)', 'tpot_ms'], ['Tokens/s per user', 'tps']]],
        ['Capacity', [['Requests/s', 'reqs'], ['Prefill (token/s)', 'tps_p'], ['Achieved decode batch', 'decode_batch_achieved'], ['Tokens / request', 'tokReq']]],
-       ['Cost', [['Buy ($ / request)', 'buyReq'], ['Rent ($ / request)', 'rentReq'], ['Buy ($ / 1M tokens, decode)', 'buy'], ['Rent ($ / 1M tokens, decode)', 'rent']]],
-       ['Energy', [['J / request', 'jReq'], ['Token/joule (decode)', 'tokJ']]],
+       ['Cost', [['Buy (requests / $)', 'buyReq'], ['Rent (requests / $)', 'rentReq'], ['Buy ($ / 1M tokens, decode)', 'buy'], ['Rent ($ / 1M tokens, decode)', 'rent']]],
+       ['Energy', [['Requests / kJ', 'jReq'], ['Token/joule (decode)', 'tokJ']]],
        ['Diagnostics', [['MBU decode (%)', 'mbu_d'], ['MFU prefill (%)', 'mfu_p'], ['Task accuracy (%)', 'acc']]]];
   const cols = groupedCols.flatMap(([, cs], gi) => cs.map((c, ci) => ({ l: c[0], k: c[1], sep: gi > 0 && ci === 0 })));
   const sepCls = ' border-l border-slate-300 dark:border-slate-700';
@@ -461,8 +466,9 @@ export default function Dashboard() {
     if (k === 'e2e') return <td key={k} className={cls}>{Math.round(v)}</td>;  // avg task latency, stored in s
     // Keep per-million prices at two decimals after custom scaling.
     if (k === 'rent' || k === 'buy') return <td key={k} className={cls}>${(+v).toFixed(2)}</td>;
-    if (k === 'rentReq' || k === 'buyReq') return <td key={k} className={cls}>{M.fmtReq(v)}</td>;
-    if (k === 'jReq') return <td key={k} className={cls}>{M.fmtJoule(v)}</td>;
+    // Per-request cost and energy are shown as rates (work per $, work per kJ), matching the radar.
+    if (k === 'rentReq' || k === 'buyReq') return <td key={k} className={cls}>{fmtRate(1 / v)}</td>;
+    if (k === 'jReq') return <td key={k} className={cls}>{fmtRate(1000 / v)}</td>;
     if (k === 'tokReq') return <td key={k} className={cls}>{v >= 1000 ? (v / 1000).toFixed(1) + 'k' : Math.round(v)}</td>;
     if (k === 'decode_batch_achieved' || k === 'task_concurrency_achieved') return <td key={k} className={cls}>{v.toFixed(1)}</td>;
     // Use the shared formatter to preserve precision below 0.1 req/s.
@@ -790,7 +796,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs font-bold text-teal-700 dark:text-teal-300">Cost</span>
                   <Sel value={radarCostMetric.norm} onChange={(e) => setRx({ ...rx, cost: e.target.value })}>
-                    {costMetrics.map((m) => <option key={m.norm} value={m.norm}>{M.costMeta(m, isAgentic).pick}</option>)}
+                    {costMetrics.map((m) => <option key={m.norm} value={m.norm}>{m.basis} ({radarCostUnit(m)})</option>)}
                   </Sel>
                 </div>
               </div>}
@@ -799,7 +805,7 @@ export default function Dashboard() {
                   ? <>The radar compares hardware, and this view has only one accelerator to compare. Alternate node sizes are shown for scaling context, not ranked.</>
                   : <>Fewer than three axes can be compared across these accelerators, and two points make a line rather than a shape. The measured values are in the results table below.</>}</p>
               ) : (<>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Normalised <b>within the hardware tier shown</b> · <b>outward = better on every axis</b> (cost and latency inverted) · hover a vertex for the measured value.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Normalised <b>within the hardware tier shown</b> · <b>outward = better on every axis</b> (energy and cost as {perN}s per kJ and per ${isAgentic ? '; latency inverted' : ''}) · hover a vertex for the measured value.</p>
               <Chart html={radarSVG(hw, vmem, radarAxes)} />
               <div className="flex flex-wrap gap-3 justify-center mt-2 text-xs">
                 {vmem.map((n) => { const cfg = M.gpuCfg(hw[n].gpu); return (
@@ -807,7 +813,7 @@ export default function Dashboard() {
                 ); })}
               </div>
               <HowTo>
-                <p>Each axis is normalised <b>within the selected hardware tier</b>, so the rim is the best of these accelerators. An axis where fewer than two of these accelerators carry a value is <b>dropped and not drawn</b>, so the axis set may differ across selections. <b>Outward means better on every axis</b>, including the inverted cost and latency axes, where the cheapest and fastest accelerator reaches the rim. Read this plot with caution: a vertex shows how an accelerator ranks, not by how much (hover for the measured value), and the enclosed area depends on the order of the axes.</p>
+                <p>Each axis is normalised <b>within the selected hardware tier</b>, so the rim is the best of these accelerators. An axis where fewer than two of these accelerators carry a value is <b>dropped and not drawn</b>, so the axis set may differ across selections. <b>Outward means better on every axis.</b> Energy and cost are plotted as rates, <b>{perN}s per kilojoule</b> and <b>{perN}s per dollar</b>, so the most efficient and the cheapest accelerator reach the rim. The results table below uses the same units; both are the reciprocals of the J / {perN} and $ / {perN} figures defined in Methods.{isAgentic ? ' Task latency is inverted, so the fastest accelerator reaches the rim.' : ''} Read this plot with caution: a vertex shows how an accelerator ranks, not by how much (hover for the measured value), and the enclosed area depends on the order of the axes.</p>
                 {isAgentic && <p>Agentic runs have no sparsity trace, so MBU/MFU are not measured and those axes are excluded rather than drawn at zero. Prefill and decode are not separated for these runs, so the phase picker does not apply.</p>}
               </HowTo>
               </>)}

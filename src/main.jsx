@@ -5,6 +5,7 @@ import Dashboard from './teas/Dashboard.jsx'
 import Methodology from './teas/Methodology.jsx'
 import Research from './Research.jsx'
 import Team from './Team.jsx'
+import Blogs, { BlogPost } from './Blogs.jsx'
 import Contact from './Contact.jsx'
 import './index.css'
 
@@ -18,6 +19,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/methods" element={<Methodology />} />
         <Route path="/publications" element={<Research />} />
         <Route path="/team" element={<Team />} />
+        <Route path="/blogs" element={<Blogs />} />
+        <Route path="/blogs/:slug" element={<BlogPost />} />
         <Route path="/contact" element={<Contact />} />
         {/* Preserve former route names. */}
         <Route path="/methodology" element={<Navigate to="/methods" replace />} />
