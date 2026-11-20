@@ -21,7 +21,17 @@
 //     Body: HelloTeas,
 //   },
 
+import IntroducingTeasbench from './IntroducingTeasbench.jsx';
+
 export const POSTS = [
+  {
+    slug: 'introducing-teasbench',
+    title: 'TEASBench: Benchmarking AI Inference the Way It Is Actually Served',
+    date: '2026-11-04',
+    authors: ['The TEAS Team'],
+    summary: 'A short tour of TEASBench, and what 484 benchmark configurations reveal about serving today\'s AI models: sparse models, software versions, cost and energy.',
+    Body: IntroducingTeasbench,
+  },
 ];
 
 // Newest first.
